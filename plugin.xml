@@ -25,6 +25,18 @@
 
         <!-- copy the source files -->
         <source-file src="src/android/OSCUtils.java" target-dir="src/nl/sylvain/cordova/osc" />
+
+        <!-- copy the osc source files -->
+		<source-file src="src/android/osc/OSCBundle.java" target-dir="src/com/illposed/osc" />
+		<source-file src="src/android/osc/OSCListener.java" target-dir="src/com/illposed/osc" />
+		<source-file src="src/android/osc/OSCMessage.java" target-dir="src/com/illposed/osc" />
+		<source-file src="src/android/osc/OSCPacket.java" target-dir="src/com/illposed/osc" />
+		<source-file src="src/android/osc/OSCPort.java" target-dir="src/com/illposed/osc" />
+		<source-file src="src/android/osc/OSCPortIn.java" target-dir="src/com/illposed/osc" />
+		<source-file src="src/android/osc/OSCPortOut.java" target-dir="src/com/illposed/osc" />
+		<source-file src="src/android/osc/utility/OSCByteArrayToJavaConverter.java" target-dir="src/com/illposed/osc/utility" />
+		<source-file src="src/android/osc/utility/OSCJavaToByteArrayConverter.java" target-dir="src/com/illposed/osc/utility" />
+		<source-file src="src/android/osc/utility/OSCPacketDispatcher.java" target-dir="src/com/illposed/osc/utility" />
     </platform>
 
 </plugin>
