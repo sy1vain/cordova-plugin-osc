@@ -1,24 +1,27 @@
 package nl.sylvain.cordova.osc;
 
+import java.net.SocketException;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
+
+import android.util.SparseArray;
 
 import com.illposed.osc.*;
 
 public class OSCUtils extends CordovaPlugin {
 
-	HashMap<Integer, OSCPortIn> oscIn;
+	private SparseArray<OSCPortIn> oscIn;
 
 	/**
      * Constructor.
      */
     public OSCUtils() {
-    	System.out.println("OSCUtils constructed");
+    	oscIn = new SparseArray<OSCPortIn>();
     }
 
     /**
@@ -33,9 +36,14 @@ public class OSCUtils extends CordovaPlugin {
     	try{
     		if(action.equals("startListening")){
     			startListening(args.getInt(0));
+    			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+    		}else if(action.equals("addMessageListener")){
+    			addMessageListener(args.getInt(0), args.getString(1), callbackContext);
     		}else{
     			return false;
     		}
+    	}catch(SocketException e){
+    		callbackContext.error(e.getMessage());
     	}catch(Exception e){
     		callbackContext.error(e.getMessage());
     	}
@@ -44,11 +52,16 @@ public class OSCUtils extends CordovaPlugin {
     }
 
 
-    private void startListening(port) throws SocketException{
+    private void startListening(int port) throws SocketException {
 		OSCPortIn oscport = getPortIn(port);
 		if(!oscport.isListening()){
 			oscport.startListening();
 		}
+    }
+    
+    private void addMessageListener(int port, String message, CallbackContext callbackContext) throws SocketException {
+    	OSCPortIn oscport = getPortIn(port);
+    	oscport.addListener(message, new OSCCallback(callbackContext));
     }
 
 
@@ -61,4 +74,35 @@ public class OSCUtils extends CordovaPlugin {
     	}
     	return oscport;
     }
+}
+
+class OSCCallback implements OSCListener  {
+	private CallbackContext callbackContext;
+	
+	OSCCallback(CallbackContext callbackContext){
+		this.callbackContext = callbackContext;
+	}
+	
+	/**
+	 * Accept an incoming OSCMessage
+	 * @param time     The time this message is to be executed.
+	 *          <code>null</code> means execute now
+	 * @param message  The message to execute.
+	 */
+	public void acceptMessage(java.util.Date time, OSCMessage message){
+		//create a json list
+		JSONArray list = new JSONArray();
+		
+		Object[] objects = message.getArguments();
+		for(int i=0; i<objects.length; i++){
+			list.put(objects[i]);
+		}
+		
+		PluginResult result = new PluginResult(PluginResult.Status.OK, list);
+		
+		//we keep the callback in memory so we can call it again
+		result.setKeepCallback(true);
+		
+		this.callbackContext.sendPluginResult(result);
+	}
 }
