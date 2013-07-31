@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+           id="nl.sylvain.cordova.osc"
+      version="0.1.0">
+    <name>OSC</name>
+
+    <js-module src="www/OSCListener.js" name="OSCListener">
+        <clobbers target="window.OSCListener" />
+    </js-module>
+
+    <!-- android -->
+    <platform name="android">
+    	<!-- bind the correct module -->
+    	<config-file target="res/xml/config.xml" parent="/*">
+            <feature name="OSC" >
+                <param name="android-package" value="org.apache.cordova.core.OSCUtils"/>
+            </feature>
+        </config-file>
+
+        <!-- allow it to access the network -->
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.INTERNET" />
+        </config-file>
+
+        <!-- copy the source files -->
+        <source-file src="src/android/OSCUtils.java" target-dir="nl/sylvain/cordova/osc" />
+    </platform>
+
+</plugin>
