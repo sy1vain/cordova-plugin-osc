@@ -14,7 +14,7 @@
     	<!-- bind the correct module -->
     	<config-file target="res/xml/config.xml" parent="/*">
             <feature name="OSC" >
-                <param name="android-package" value="org.apache.cordova.core.OSCUtils"/>
+                <param name="android-package" value="nl.sylvain.cordova.osc.OSCUtils"/>
             </feature>
         </config-file>
 
