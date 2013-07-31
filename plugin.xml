@@ -24,7 +24,7 @@
         </config-file>
 
         <!-- copy the source files -->
-        <source-file src="src/android/OSCUtils.java" target-dir="nl/sylvain/cordova/osc" />
+        <source-file src="src/android/OSCUtils.java" target-dir="src/nl/sylvain/cordova/osc" />
     </platform>
 
 </plugin>
