@@ -51,6 +51,39 @@ public class OSCUtils extends CordovaPlugin {
     	return true;
     }
 
+    /**
+     * Called when the system is about to start resuming a previous activity.
+     *
+     * @param multitasking      Flag indicating if multitasking is turned on for app
+     */
+    public void onPause(boolean multitasking) {
+        //TODO
+    }
+    
+    /**
+     * Called when the activity will start interacting with the user.
+     *
+     * @param multitasking      Flag indicating if multitasking is turned on for app
+     */
+    public void onResume(boolean multitasking) {
+        //TODO
+    }
+    
+    /**
+     * Called when the WebView does a top-level navigation or refreshes.
+     *
+     * Plugins should stop any long-running processes and clean up internal state.
+     *
+     * Does nothing by default.
+     */
+    public void onReset() {
+        for(int i=0; i<oscIn.size(); i++){
+            OSCPortIn inport = oscIn.valueAt(i);
+            inport.stopListening();
+            inport.close();
+        }
+        oscIn.clear();
+    }
 
     private void startListening(int port) throws SocketException {
 		OSCPortIn oscport = getPortIn(port);
