@@ -9,13 +9,13 @@ OSCListener.prototype.startListening = function(successCallback, errorCallback){
 OSCListener.prototype.stopListening = function(successCallback){
 	cordova.exec(successCallback, function(err){
 		console.log(err);
-	}, "OSC", "stopListening", [this.port, message]);
+	}, "OSC", "stopListening", [this.port]);
 }
 
 OSCListener.prototype.close = function(successCallback){
 	cordova.exec(successCallback, function(err){
 		console.log(err);
-	}, "OSC", "close", [this.port, message]);
+	}, "OSC", "close", [this.port]);
 }
 
 OSCListener.prototype.on = function(message, successCallback){
