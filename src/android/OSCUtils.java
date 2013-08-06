@@ -37,6 +37,12 @@ public class OSCUtils extends CordovaPlugin {
     		if(action.equals("startListening")){
     			startListening(args.getInt(0));
     			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+            }else if(action.equals("stopListening")){
+                stopListening(args.getInt(0));
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+            }else if(action.equals("close")){
+                close(args.getInt(0));
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
     		}else if(action.equals("addMessageListener")){
     			addMessageListener(args.getInt(0), args.getString(1), callbackContext);
     		}else{
@@ -90,6 +96,21 @@ public class OSCUtils extends CordovaPlugin {
 		if(!oscport.isListening()){
 			oscport.startListening();
 		}
+    }
+
+    private void stopListening(int port) throws SocketException {
+        OSCPortIn oscport = getPortIn(port);
+        if(oscport.isListening()){
+            oscport.stopListening();
+        }
+    }
+
+    private void close(int port) throws SocketException {
+        stopListening(port);
+        OSCPortIn oscport = getPortIn(port);
+        oscport.close();
+        //remove from lists
+        oscIn.delete(port);
     }
     
     private void addMessageListener(int port, String message, CallbackContext callbackContext) throws SocketException {
