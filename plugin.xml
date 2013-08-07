@@ -27,7 +27,7 @@
         <source-file src="src/android/OSCUtils.java" target-dir="src/nl/sylvain/cordova/osc" />
 
         <!-- copy the osc source files -->
-		<source-file src="libs/JavaOsc.jar" target-dir="libs" />
+		<source-file src="libs/oscP5.jar" target-dir="libs" />
     </platform>
 
 </plugin>

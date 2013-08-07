@@ -1,67 +1,70 @@
 package nl.sylvain.cordova.osc;
 
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.LinkedList;
+
+import netP5.Logger;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import android.util.SparseArray;
+import oscP5.OscEventListener;
+import oscP5.OscMessage;
+import oscP5.OscP5;
+import oscP5.OscStatus;
 
-import com.illposed.osc.*;
+import android.util.SparseArray;
 
 public class OSCUtils extends CordovaPlugin {
 
-    private SparseArray<OSCPortInTC> oscIn;
+	private SparseArray<OscP5> oscIn = new SparseArray<OscP5>();
 
-    /**
+	/**
      * Constructor.
      */
     public OSCUtils() {
-        oscIn = new SparseArray<OSCPortInTC>();
+    	//turn off logging
+    	Logger.set(Logger.DEBUG, Logger.OFF);
+    	Logger.set(Logger.INFO, Logger.OFF);
+    	Logger.set(Logger.PROCESS, Logger.OFF);
+    	Logger.set(Logger.WARNING, Logger.OFF);
+    	Logger.set(Logger.ERROR, Logger.ON);
     }
 
     /**
      * Executes the request and returns whether the action was valid.
      *
-     * @param action        The action to execute.
-     * @param args      JSONArray of arguments for the plugin.
-     * @param callbackContext   The callback context used when calling back into JavaScript.
-     * @return          True if the action was valid, false otherwise.
+     * @param action 		The action to execute.
+     * @param args 		JSONArray of arguments for the plugin.
+     * @param callbackContext	The callback context used when calling back into JavaScript.
+     * @return 			True if the action was valid, false otherwise.
      */
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        try{
-            if(action.equals("startListening")){
-                startListening(args.getInt(0));
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+    	try{
+    		if(action.equals("startListening")){
+    			startListening(args.getInt(0), callbackContext);
             }else if(action.equals("stopListening")){
-                stopListening(args.getInt(0));
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+            	stopListening(args.getInt(0), callbackContext);
             }else if(action.equals("close")){
                 close(args.getInt(0));
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
-            }else if(action.equals("addMessageListener")){
-                addMessageListener(args.getInt(0), args.getString(1), callbackContext);
-                PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
+    		}else if(action.equals("addMessageListener")){
+    			addMessageListener(args.getInt(0), args.getString(1), callbackContext);
+    			PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
                 pluginResult.setKeepCallback(true);
                 callbackContext.sendPluginResult(pluginResult);
-            }else{
-                return false;
-            }
-        }catch(SocketException e){
-            callbackContext.error(e.getMessage());
-        }catch(Exception e){
-            callbackContext.error(e.getMessage());
-        }
-        //always return true, we only get here through an exception
-        return true;
+    		}else{
+    			return false;
+    		}
+    	}catch(SocketException e){
+    		callbackContext.error(e.getMessage());
+    	}catch(Exception e){
+    		callbackContext.error(e.getMessage());
+    	}
+    	//always return true, we only get here through an exception
+    	return true;
     }
 
     /**
@@ -90,172 +93,128 @@ public class OSCUtils extends CordovaPlugin {
      * Does nothing by default.
      */
     public void onReset() {
-        for(int i=0; i<oscIn.size(); i++){
-            OSCPortInTC inport = oscIn.valueAt(i);
-            inport.stopListening();
-            inport.close();
-        }
-        oscIn.clear();
+    	cordova.getThreadPool().execute(new Runnable(){
+    		public void run(){
+    			synchronized (oscIn) {
+    		        for(int i=0; i<oscIn.size(); i++){
+    		        	OscP5 oscport = oscIn.valueAt(i);
+    		            oscport.stop();
+    		        }
+    		        oscIn.clear();
+    	    	}	
+    		}
+    	});
     }
 
-    private void startListening(int port) throws SocketException {
-        OSCPortInTC oscport = getPortIn(port);
-        if(!oscport.isListening()){
-            oscport.startListening();
-        }
-    }
-
-    private void stopListening(int port) throws SocketException {
-        OSCPortInTC oscport = getPortIn(port);
-        if(oscport.isListening()){
-            oscport.stopListening();
-        }
-    }
-
-    private void close(int port) throws SocketException {
-        stopListening(port);
-        OSCPortInTC oscport = getPortIn(port);
-        oscport.close();
-        //remove from lists
-        oscIn.delete(port);
+    private void startListening(final int port, final CallbackContext callbackContext){
+    	cordova.getThreadPool().execute(new Runnable(){
+    		public void run(){
+    			getPortIn(port);
+    			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+    		}
+    	});
     }
     
-    private void addMessageListener(int port, String message, CallbackContext callbackContext) throws SocketException {
-        OSCPortInTC oscport = getPortIn(port);
-        OSCCallback callback = new OSCCallback(callbackContext);
-        oscport.addListener(message, callback);
-        cordova.getThreadPool().execute(callback);
+    private void stopListening(final int port, final CallbackContext callbackContext){
+    	cordova.getThreadPool().execute(new Runnable(){
+    		public void run(){
+    			OscP5 oscport = getPortIn(port, false);
+    			if(oscport!=null){
+    				oscport.stop();
+    		
+    				//also remove all listeners if threaded
+    				synchronized (oscIn) {
+    					oscIn.delete(port);
+    				}
+    			}
+    			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+    		}
+    	});
+    }
+    
+    private void addMessageListener(final int port, final String message, final CallbackContext callbackContext) throws SocketException {
+    	cordova.getThreadPool().execute(new Runnable(){
+    		public void run(){
+    			OscP5 oscport = getPortIn(port);
+    	    	oscport.addListener(new OscListener(message, callbackContext));
+    		}
+    	});
+    }
+    
+    private void close(final int port) {
+    	cordova.getThreadPool().execute(new Runnable(){
+    		public void run(){
+    			OscP5 oscport = getPortIn(port, false);
+    			if(oscport!=null){
+    				oscport.stop();
+    		
+    				//also remove all listeners if threaded
+    				synchronized (oscIn) {
+    					oscIn.delete(port);
+    				}
+    			}
+    		}
+    	});
     }
 
-
-    // port utils
-    private OSCPortInTC getPortIn(int port) throws SocketException {
-        OSCPortInTC oscport = oscIn.get(port);
-        if(oscport==null){
-            oscport = new OSCPortInTC(port);
-            oscIn.put(port, oscport);
-        }
-        return oscport;
+    
+    //get a port (always create)
+    private OscP5 getPortIn(int port){
+    	return getPortIn(port, true);
     }
+    
+    //get a port and create if needed
+    private OscP5 getPortIn(int port, boolean create) {
+    	synchronized (oscIn) {
+    		OscP5 oscport = oscIn.get(port);
+        	if(oscport==null && create){
+        		/* we use "new Object()" instead of null
+        		 * since the underlying object will
+        		 * throw an error otherwise (tsk tsk)
+        		 */
+        		oscport = new OscP5(new Object(), port);
+        		oscIn.put(port, oscport);
+        	}
+        	return oscport;
+		}
+    }
+    
 }
 
-class OSCIn extends OSCPortIn {
-    
-    OSCIn(int port) throws SocketException{
-        super(port);
-
-    }
-    
-}
-
-
-//variant which add threaded callbacks
-class OSCPortInTC extends OSCPortIn {
-    private final LinkedList<OSCCallback> callbacks = new LinkedList<OSCCallback>(); 
-    
-    OSCPortInTC(int port) throws SocketException {
-        super(port);
+class OscListener implements OscEventListener, Runnable {
+	
+	private String addr;
+	private CallbackContext callbackContext;
+	
+	OscListener(String addr, CallbackContext callbackContext){
+		this.addr = addr;
+		this.callbackContext = callbackContext;
+	}
+	
+	public void oscEvent(OscMessage msg){
+		if(!msg.addrPattern().equals(this.addr)) return;
+		
+		//create a json list
+        JSONArray list = new JSONArray();
         
-        DatagramSocket socket = getSocket();
+        Object[] objects = msg.arguments();
+        for(int i=0; i<objects.length; i++){
+            list.put(objects[i]);
+        }
         
-        socket.setBroadcast(true);
-    }
-    
-    public void close(){
-        super.close();
+        PluginResult result = new PluginResult(PluginResult.Status.OK, list);
         
-        while(callbacks.size()>0){
-            OSCCallback callback = callbacks.pop();
-            callback.end();
-        }
-    }
-    
-    public void addListener(String message, OSCCallback callback){
-        super.addListener(message, callback);
-        addCallback(callback);
-    }
-    
-    public void addCallback(OSCCallback callback){
-        callbacks.add(callback);
-    }
-    
-    public void finalize() throws Throwable{
-        this.close();
-        super.finalize();
-    }
-}
-
-class OSCCallback extends Thread implements OSCListener  {
-    private CallbackContext callbackContext;
-    
-    private LinkedList<OSCMessage> queue;
-    private boolean running;
-    
-    OSCCallback(CallbackContext callbackContext){
-        this.callbackContext = callbackContext;
-        queue = new LinkedList<OSCMessage>();
-        running = false;
-    }
-    
-    public void end(){
-        synchronized (this) {
-            running = false;
-        }
-    }
-    
-    /**
-     * this is the thead that runs
-     */
-    public void run(){
-        synchronized (this) {
-            if(running) return;
-            running = true;
-        }
-        while(true){
-            synchronized (this) {
-                if(!running) return;
-            }
-            OSCMessage message = null;
-            synchronized (queue) {
-                while(queue.size()>0){
-                    message = queue.pop();
-                }
-            }
-            if(message==null){
-                continue;
-            }
-            
-            
-            //create a json list
-            JSONArray list = new JSONArray();
-            
-            Object[] objects = message.getArguments();
-            for(int i=0; i<objects.length; i++){
-                list.put(objects[i]);
-            }
-            
-            PluginResult result = new PluginResult(PluginResult.Status.OK, list);
-            
-            //we keep the callback in memory so we can call it again
-            result.setKeepCallback(true);
-            
-            this.callbackContext.sendPluginResult(result);
-        }
-    }
-    
-    /**
-     * Accept an incoming OSCMessage
-     * @param time     The time this message is to be executed.
-     *          <code>null</code> means execute now
-     * @param message  The message to execute.
-     */
-    public void acceptMessage(java.util.Date time, OSCMessage message){
-        /**
-         * We change this to run a thread to notify the client
-         * possibly also implement a queue
-         */
-        synchronized (queue) {
-            queue.add(message);
-        }
-    }
+        //we keep the callback in memory so we can call it again
+        result.setKeepCallback(true);
+        
+        this.callbackContext.sendPluginResult(result);
+	}
+	
+	public void oscStatus(OscStatus status){
+		System.out.println("status " + status.toString());
+	}
+	
+	public void run(){
+		
+	}
 }
