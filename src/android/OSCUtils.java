@@ -6,8 +6,6 @@ import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
 
-import netP5.Logger;
-
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
@@ -209,6 +207,7 @@ public class OSCUtils extends CordovaPlugin {
     				}
     				
     				oscport.send(packet);
+    				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
     				
     			}catch(Exception e){
     				callbackContext.error(e.getMessage());

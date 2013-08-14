@@ -4,7 +4,7 @@ var OSCSender = function(host, port){
 	this.port = port;
 }
 
-OSCListener.prototype.send = function(address, data, successCallback, errorCallback){
+OSCSender.prototype.send = function(address, data, successCallback, errorCallback){
 
 	//this could be more advanced with checking if no data given, just callbacks etc
 
@@ -12,8 +12,8 @@ OSCListener.prototype.send = function(address, data, successCallback, errorCallb
 	if(!(data instanceof Array)) data = [data];
 
 	data.unshift(address);
-	data.unshift(port);
-	data.unshift(host);
+	data.unshift(this.port);
+	data.unshift(this.host);
 
 	cordova.exec(successCallback, errorCallback, "OSC", "sendMessage", data);
 }
