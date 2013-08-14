@@ -55,6 +55,8 @@ public class OSCUtils extends CordovaPlugin {
     			PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
                 pluginResult.setKeepCallback(true);
                 callbackContext.sendPluginResult(pluginResult);
+    		}else if(action.equals("sendMessage")){
+    			sendMessage(args, callbackContext);
     		}else{
     			return false;
     		}
@@ -180,6 +182,38 @@ public class OSCUtils extends CordovaPlugin {
     			}catch(Exception e){
     				callbackContext.error(e.getMessage());
     			}
+    		}
+    	});
+    }
+    
+    
+    //sending of messages
+    private void sendMessage(final JSONArray args, final CallbackContext callbackContext){
+    	
+    	if(args.length()<3){
+    		callbackContext.error("Too little arguments");
+    		return;
+    	}
+    	cordova.getThreadPool().execute(new Runnable(){
+    		public void run(){
+    			try{
+    				String host = args.getString(0);
+    				int port = args.getInt(1);
+    				String address = args.getString(2);
+    				
+    				OSCPortOut oscport = getPortOut(host, port);
+    				OSCMessage packet = new OSCMessage(address);
+    				
+    				for(int i=3; i<args.length(); i++){
+    					packet.addArgument(args.get(i));
+    				}
+    				
+    				oscport.send(packet);
+    				
+    			}catch(Exception e){
+    				callbackContext.error(e.getMessage());
+    			}
+    			
     		}
     	});
     }

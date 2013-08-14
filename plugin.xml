@@ -8,6 +8,9 @@
     <js-module src="www/OSCListener.js" name="OSCListener">
         <clobbers target="window.OSCListener" />
     </js-module>
+    <js-module src="www/OSCSender.js" name="OSCSender">
+        <clobbers target="window.OSCSender" />
+    </js-module>
 
     <!-- android -->
     <platform name="android">
