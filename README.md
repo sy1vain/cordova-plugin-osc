@@ -10,7 +10,7 @@ Supported platforms
 Supported features
 ==================
 * OSC Receive
-(sending will be supported later)
+* OSC Send
 
 
-Android OSC relies on https://github.com/hoijui/JavaOSC these files are hard-copied for the time being
+Android OSC relies on https://github.com/hoijui/JavaOSC (included as a JAR file)

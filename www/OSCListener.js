@@ -16,7 +16,7 @@ OSCListener.prototype.stopListening = function(successCallback){
 OSCListener.prototype.close = function(successCallback){
 	cordova.exec(successCallback, function(err){
 		console.log(err);
-	}, "OSC", "close", [this.port]);
+	}, "OSC", "closeListener", [this.port]);
 }
 
 OSCListener.prototype.on = function(message, successCallback){

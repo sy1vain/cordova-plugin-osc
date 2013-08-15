@@ -5,6 +5,9 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -46,8 +49,10 @@ public class OSCUtils extends CordovaPlugin {
     			startListening(args.getInt(0), callbackContext);
             }else if(action.equals("stopListening")){
             	stopListening(args.getInt(0), callbackContext);
-            }else if(action.equals("close")){
-                close(args.getInt(0), callbackContext);
+            }else if(action.equals("closeListener")){
+                closeListener(args.getInt(0), callbackContext);
+            }else if(action.equals("closeSender")){
+                closeSender(args.getString(0), args.getInt(1), callbackContext);
     		}else if(action.equals("addMessageListener")){
     			addMessageListener(args.getInt(0), args.getString(1), callbackContext);
     			PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
@@ -105,6 +110,14 @@ public class OSCUtils extends CordovaPlugin {
     				}
     				oscIn.clear();
     			}
+    			synchronized(oscOut){
+    				Iterator<Entry<String, OSCPortOut>> it = oscOut.entrySet().iterator();
+    				while (it.hasNext()) {
+    			        Map.Entry<String, OSCPortOut> pair = (Map.Entry<String, OSCPortOut>)it.next();
+    			        pair.getValue().close();
+    			    }
+    				oscOut.clear();
+    			}
     		}
     	});
     }
@@ -161,8 +174,8 @@ public class OSCUtils extends CordovaPlugin {
     	});
     }
     
-    //close the port
-    private void close(final int port, final CallbackContext callbackContext) {
+    //close the listener port
+    private void closeListener(final int port, final CallbackContext callbackContext) {
     	cordova.getThreadPool().execute(new Runnable(){
     		public void run(){
     			try{
@@ -174,6 +187,25 @@ public class OSCUtils extends CordovaPlugin {
     					oscport.close();
     					synchronized (oscIn) {
     						oscIn.delete(port);
+    					}
+    				}
+    				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+    			}catch(Exception e){
+    				callbackContext.error(e.getMessage());
+    			}
+    		}
+    	});
+    }
+    
+    private void closeSender(final String host, final int port, final CallbackContext callbackContext) {
+    	cordova.getThreadPool().execute(new Runnable(){
+    		public void run(){
+    			try{
+    				OSCPortOut oscport = getPortOut(host, port, false);
+    				if(oscport!=null){
+    					oscport.close();
+    					synchronized (oscOut) {
+    						oscOut.remove(createOutKey(host, port));
     					}
     				}
     				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));

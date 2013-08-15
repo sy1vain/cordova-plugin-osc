@@ -11,11 +11,18 @@ OSCSender.prototype.send = function(address, data, successCallback, errorCallbac
 	if(typeof data == 'undefined' || !data) data = [];
 	if(!(data instanceof Array)) data = [data];
 
+	//we prepend it so reverse order
 	data.unshift(address);
 	data.unshift(this.port);
 	data.unshift(this.host);
 
 	cordova.exec(successCallback, errorCallback, "OSC", "sendMessage", data);
+}
+
+OSCListener.prototype.close = function(successCallback){
+	cordova.exec(successCallback, function(err){
+		console.log(err);
+	}, "OSC", "closeSender", [this.host, this.port]);
 }
 
 
