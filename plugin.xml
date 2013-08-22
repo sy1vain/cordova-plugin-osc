@@ -43,7 +43,8 @@
         </config-file>
 
         <!-- copy the source files -->
-        <header-file-file src="src/ios/CocoaOSC/CocoaOSC/CocoaOSC.h" target-dir="src/nl/sylvain/cordova/osc" />
+        <header-file src="src/ios/CDVOSC.h" />
+        <source-file src="src/ios/CDVOSC.m" />
 
     </platform>
 
