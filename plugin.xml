@@ -46,6 +46,25 @@
         <header-file src="src/ios/CDVOSC.h" />
         <source-file src="src/ios/CDVOSC.m" />
 
+        <header-file src="src/ios/CocoaOSC/AsyncSocket.h" />
+        <source-file src="src/ios/CocoaOSC/AsyncSocket.m" />
+        <header-file src="src/ios/CocoaOSC/AsyncUdpSocket.h" />
+        <source-file src="src/ios/CocoaOSC/AsyncUdpSocket.m" />
+        <header-file src="src/ios/CocoaOSC/CocoaOSC.h" />
+        <header-file src="src/ios/CocoaOSC/NS+OSCAdditions.h" />
+        <source-file src="src/ios/CocoaOSC/NS+OSCAdditions.m" />
+        <header-file src="src/ios/CocoaOSC/OSCConnection.h" />
+        <source-file src="src/ios/CocoaOSC/OSCConnection.m" />
+        <header-file src="src/ios/CocoaOSC/OSCConnectionDelegate.h" />
+        <header-file src="src/ios/CocoaOSC/OSCDispatcher.h" />
+        <source-file src="src/ios/CocoaOSC/OSCDispatcher.m" />
+        <header-file src="src/ios/CocoaOSC/OSCPacket.h" />
+        <source-file src="src/ios/CocoaOSC/OSCPacket.m" />
+        <header-file src="src/ios/CocoaOSC/RegexKitLite.h" />
+        <source-file src="src/ios/CocoaOSC/RegexKitLite.m" compiler-flags="-fno-objc-arc" />
+
+        <framework src="libicucore.dylib" />
+
     </platform>
 
 </plugin>

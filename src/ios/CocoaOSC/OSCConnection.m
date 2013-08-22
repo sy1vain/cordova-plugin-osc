@@ -49,9 +49,6 @@ enum {
 - (void)dealloc
 {
     [self disconnect];
-    [dispatcher release];
-    [pendingPacketsByTag release];
-    [super dealloc];
 }
 
 
@@ -64,16 +61,13 @@ enum {
 {
     [tcpListenSocket setDelegate:nil];
     [tcpListenSocket disconnect];
-    [tcpListenSocket release];
     tcpListenSocket = nil;
     
     [tcpSocket setDelegate:nil];
     [tcpSocket disconnect];
-    [tcpSocket release];
     tcpSocket = nil;
      
     [udpSocket setDelegate:nil];
-    [udpSocket release];
     udpSocket = nil;
      
     [pendingPacketsByTag removeAllObjects];
@@ -276,7 +270,7 @@ onError:
     {
         [delegate oscConnection:self didReceivePacket:packet];
     }
-    [packet release];
+    
 }
 
 
@@ -298,7 +292,7 @@ onError:
 - (void)onSocket:(AsyncSocket *)sock didAcceptNewSocket:(AsyncSocket *)newSocket
 {
     [self disconnectAndNotifyDelegate:NO];
-    tcpSocket = [newSocket retain];
+    tcpSocket = newSocket;
 }
 
 - (void)onSocket:(AsyncSocket *)sock didConnectToHost:(NSString *)host port:(UInt16)port

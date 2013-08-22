@@ -26,7 +26,7 @@ typedef enum {
 
 @interface OSCConnection : NSObject
 {
-    id<OSCConnectionDelegate> delegate;
+//    id<OSCConnectionDelegate> delegate;
     OSCDispatcher *dispatcher;
     
     AsyncSocket *tcpListenSocket;
