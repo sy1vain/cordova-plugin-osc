@@ -33,4 +33,18 @@
 		<source-file src="libs/JavaOsc.jar" target-dir="libs" />
     </platform>
 
+    <!-- ios -->
+    <platform name="ios">
+        <!-- bind the correct module -->
+        <config-file target="config.xml" parent="/*">
+            <feature name="OSC">
+                <param name="ios-package" value="CDVOSC" /> 
+            </feature>
+        </config-file>
+
+        <!-- copy the source files -->
+        <source-file src="" target-dir="src/nl/sylvain/cordova/osc" />
+
+    </platform>
+
 </plugin>
