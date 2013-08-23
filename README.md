@@ -5,7 +5,7 @@ This is a very basic OSC plugin for cordova
 Supported platforms
 ===================
 * Android
-(iOS will follow)
+* iOS
 
 Supported features
 ==================
@@ -14,3 +14,4 @@ Supported features
 
 
 Android OSC relies on https://github.com/hoijui/JavaOSC (included as a JAR file)
+iOS OSC relies on https://github.com/danieldickison/CocoaOSC
