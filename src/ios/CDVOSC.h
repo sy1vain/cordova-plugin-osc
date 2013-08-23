@@ -3,7 +3,8 @@
 
 @interface CDVOSC : CDVPlugin
 {
-    NSMutableDictionary* oscConnections;
+    NSMutableDictionary* oscIn;
+    NSMutableDictionary* oscOut;
 }
 
 - (void)pluginInitialize;
@@ -20,7 +21,17 @@
 
 @end
 
-@interface OSCObject : NSObject <OSCConnectionDelegate>
+@interface OSCSender : NSObject
+{
+    OSCConnection *connection;
+}
+
+-(id)init;
+-(void)send:(OSCPacket*)pkt toHost:(NSString*) host atPort:(NSNumber*)port;
+-(void)close;
+@end
+
+@interface OSCListener : NSObject <OSCConnectionDelegate>
 {
     OSCConnection *connection;
     NSMutableDictionary *listeners;
@@ -29,7 +40,6 @@
 
 -(id)initWithPort:(NSNumber*)port andDelegate:(id <CDVCommandDelegate>)delegate;
 -(void)addListener:(NSString*)address withCallback:(NSString*)callbackId;
--(void)send:(OSCPacket*)pkt toHost:(NSString*) host;
 -(void)startListening;
 -(void)stopListening;
 -(void)close;

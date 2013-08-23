@@ -6,7 +6,8 @@
 
 - (void)pluginInitialize
 {
-    oscConnections = [NSMutableDictionary dictionary];
+    oscIn = [NSMutableDictionary dictionary];
+    oscOut = [NSMutableDictionary dictionary];
 }
 
 //sending
@@ -18,16 +19,17 @@
     NSNumber *port = [command.arguments objectAtIndex:1];
     
     
-    OSCObject *connection = [self getConnection:port];
-    if(connection==nil){
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to bind to port"];
+    OSCSender *osc = [self getOscOut:port];
+    
+    if(osc==nil){
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to create out port"];
     }else{
         OSCMutableMessage *message = [[OSCMutableMessage alloc] init];
         message.address = [command.arguments objectAtIndex:2];
-        for(int i=0; i<[command.arguments count]; i++){
+        for(int i=3; i<[command.arguments count]; i++){
             [message addArgument:[command.arguments objectAtIndex:i]];
         }
-        [connection send:message toHost:host];
+        [osc send:message toHost:host atPort:port];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     
@@ -40,12 +42,12 @@
 {
     NSNumber* port = [command.arguments objectAtIndex:0];
     
-    OSCObject *connection = [self getConnection:port];
-    if(connection!=nil){
+    OSCSender *osc = [self getOscOut:port forceCreate:NO];
+    if(osc!=nil){
         //close the connection
-        [connection close];
+        [osc close];
         //remove it from the list
-        [oscConnections removeObjectForKey:port];
+        [oscOut removeObjectForKey:port];
     }
     
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -60,11 +62,11 @@
     
     NSNumber* port = [command.arguments objectAtIndex:0];
     
-    OSCObject *connection = [self getConnection:port];
-    if(connection==nil){
+    OSCListener *osc = [self getOscIn:port];
+    if(osc==nil){
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to create with port"];
     }else{
-        [connection startListening];
+        [osc startListening];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     
@@ -79,11 +81,11 @@
     
     NSNumber* port = [command.arguments objectAtIndex:0];
     
-    OSCObject *connection = [self getConnection:port];
-    if(connection==nil){
+    OSCListener *osc = [self getOscIn:port];
+    if(osc==nil){
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to create with port"];
     }else{
-        [connection stopListening];
+        [osc stopListening];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     
@@ -97,12 +99,12 @@
     
     NSNumber* port = [command.arguments objectAtIndex:0];
     
-    OSCObject *connection = [self getConnection:port];
-    if(connection==nil){
+    OSCListener *osc = [self getOscIn:port];
+    if(osc==nil){
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to create with port"];
         [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
     }else{
-        [connection addListener:[command.arguments objectAtIndex:1] withCallback:command.callbackId];
+        [osc addListener:[command.arguments objectAtIndex:1] withCallback:command.callbackId];
     }
 }
 
@@ -110,12 +112,12 @@
 {
     NSNumber* port = [command.arguments objectAtIndex:0];
     
-    OSCObject *connection = [self getConnection:port];
-    if(connection!=nil){
+    OSCListener *osc = [self getOscIn:port forceCreate:NO];
+    if(osc!=nil){
         //close the connection
-        [connection close];
+        [osc close];
         //remove it from the list
-        [oscConnections removeObjectForKey:port];
+        [oscIn removeObjectForKey:port];
     }
     
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -123,36 +125,77 @@
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (OSCObject*)getConnection:(NSNumber*)port{
-    return [self getConnection:port forceCreate:YES];
+- (OSCListener*)getOscIn:(NSNumber*)port{
+    return [self getOscIn:port forceCreate:YES];
 }
 
-- (OSCObject*)getConnection:(NSNumber*)port forceCreate:(bool)create{
+- (OSCListener*)getOscIn:(NSNumber*)port forceCreate:(bool)create{
 
-    OSCObject *connection = [oscConnections objectForKey:port];
+    OSCListener *osc = [oscIn objectForKey:port];
 
-    if(connection==nil && create){
-        connection = [[OSCObject alloc] initWithPort:port andDelegate:self.commandDelegate];
-        if(connection!=nil){
-            [oscConnections setObject:connection forKey:port];
+    if(osc==nil && create){
+        osc = [[OSCListener alloc] initWithPort:port andDelegate:self.commandDelegate];
+        if(osc!=nil){
+            [oscIn setObject:osc forKey:port];
         }
     }
     
-    return connection;
+    return osc;
 }
 
-- (void)oscConnection:(OSCConnection *)connection didReceivePacket:(OSCPacket *)packet
+- (OSCSender*)getOscOut:(NSNumber*)port{
+    return [self getOscOut:port forceCreate:YES];
+}
+
+- (OSCSender*)getOscOut:(NSNumber*)port forceCreate:(bool)create{
+    
+    OSCSender *osc = [oscOut objectForKey:port];
+    
+    if(osc==nil && create){
+        osc = [[OSCSender alloc] init];
+        if(osc!=nil){
+            [oscOut setObject:osc forKey:port];
+        }
+    }
+    
+    return osc;
+}
+
+@end
+
+
+@implementation OSCSender
+
+-(id)init
 {
-    NSLog(@"packet: %@", packet.address);
+    if(self = [super init])
+    {
+        connection = [[OSCConnection alloc] init];
+        NSError *error;
+        if (![connection bindToAddress:nil port:0 error:&error])
+        {
+            NSLog(@"Could not bind UDP connection: %@", error);
+            self = nil;
+        }
+    }
+    return self;
+}
+
+-(void)send:(OSCPacket *)pkt toHost:(NSString *)host atPort:(NSNumber*)port
+{
+    [connection sendPacket:pkt toHost:host port:[port intValue]];
+}
+
+-(void)close
+{
+    [connection disconnect];
 }
 
 @end
 
 
 
-
-
-@implementation OSCObject
+@implementation OSCListener
 
 -(id)initWithPort:(NSNumber*)port andDelegate:(id <CDVCommandDelegate>)delegate;
 {
@@ -182,11 +225,6 @@
     [commandDelegate sendPluginResult:result callbackId:callbackId];
 }
 
--(void)send:(OSCPacket*)pkt toHost:(NSString*) host
-{
-    [connection sendPacket:pkt toHost:host port:[connection localPort]];
-}
-
 -(void)startListening
 {
     if(!connection.continuouslyReceivePackets){
@@ -203,6 +241,7 @@
 -(void)close
 {
     [self stopListening];
+    [connection disconnect];
 }
 
 - (void)oscConnection:(OSCConnection *)connection didReceivePacket:(OSCPacket *)packet

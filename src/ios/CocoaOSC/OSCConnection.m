@@ -135,7 +135,6 @@ enum {
     else
     {
         udpSocket = [[AsyncUdpSocket alloc] initWithDelegate:self];
-        [udpSocket enableBroadcast:YES error:nil];
         if (![udpSocket connectToHost:host onPort:port error:errPtr])
         {
             goto onError;
