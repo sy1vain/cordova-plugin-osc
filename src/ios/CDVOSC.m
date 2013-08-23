@@ -172,7 +172,7 @@
     {
         connection = [[OSCConnection alloc] init];
         NSError *error;
-        if (![connection bindToAddress:nil port:0 error:&error])
+        if (![connection bindToPort:0 error:&error])
         {
             NSLog(@"Could not bind UDP connection: %@", error);
             self = nil;
@@ -203,7 +203,7 @@
     {
         connection = [[OSCConnection alloc] init];
         NSError *error;
-        if (![connection bindToAddress:nil port:[port intValue] error:&error]){
+        if (![connection bindToPort:[port intValue] error:&error]){
             //throw something
             NSLog(@"Could not bind UDP connection: %@", error);
             self = nil;
@@ -246,6 +246,7 @@
 
 - (void)oscConnection:(OSCConnection *)connection didReceivePacket:(OSCPacket *)packet
 {
+    
     NSString *callbackId = [listeners objectForKey:packet.address];
     if(callbackId==nil) return;
         

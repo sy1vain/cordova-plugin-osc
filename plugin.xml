@@ -46,10 +46,10 @@
         <header-file src="src/ios/CDVOSC.h" />
         <source-file src="src/ios/CDVOSC.m" />
 
-        <header-file src="src/ios/CocoaOSC/AsyncSocket.h" />
-        <source-file src="src/ios/CocoaOSC/AsyncSocket.m" />
-        <header-file src="src/ios/CocoaOSC/AsyncUdpSocket.h" />
-        <source-file src="src/ios/CocoaOSC/AsyncUdpSocket.m" />
+        <header-file src="src/ios/CocoaOSC/GCDAsyncSocket.h" />
+        <source-file src="src/ios/CocoaOSC/GCDAsyncSocket.m" />
+        <header-file src="src/ios/CocoaOSC/GCDAsyncUdpSocket.h" />
+        <source-file src="src/ios/CocoaOSC/GCDAsyncUdpSocket.m" />
         <header-file src="src/ios/CocoaOSC/CocoaOSC.h" />
         <header-file src="src/ios/CocoaOSC/NS+OSCAdditions.h" />
         <source-file src="src/ios/CocoaOSC/NS+OSCAdditions.m" />
@@ -64,6 +64,7 @@
         <source-file src="src/ios/CocoaOSC/RegexKitLite.m" compiler-flags="-fno-objc-arc" />
 
         <framework src="libicucore.dylib" />
+        <framework src="Security.framework" />
 
     </platform>
 

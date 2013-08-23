@@ -10,8 +10,8 @@
 #import "OSCConnectionDelegate.h"
 
 
-@class AsyncSocket;
-@class AsyncUdpSocket;
+@class GCDAsyncSocket;
+@class GCDAsyncUdpSocket;
 @class OSCPacket;
 @class OSCDispatcher;
 
@@ -29,9 +29,9 @@ typedef enum {
 //    id<OSCConnectionDelegate> delegate;
     OSCDispatcher *dispatcher;
     
-    AsyncSocket *tcpListenSocket;
-    AsyncSocket *tcpSocket;
-    AsyncUdpSocket *udpSocket;
+    GCDAsyncSocket *tcpListenSocket;
+    GCDAsyncSocket *tcpSocket;
+    GCDAsyncUdpSocket *udpSocket;
     
     OSCConnectionProtocol protocol;
     
@@ -59,7 +59,7 @@ typedef enum {
 - (BOOL)acceptOnInterface:(NSString *)interface port:(UInt16)port protocol:(OSCConnectionProtocol)proto error:(NSError **)errPtr;
 
 // Bind can be used by a server UDP socket to receive packets before sending anything out.  This will set the protocol property to OSCConnectionUDP.  localAddr can be nil.
-- (BOOL)bindToAddress:(NSString *)localAddr port:(UInt16)port error:(NSError **)errPtr;
+- (BOOL)bindToPort:(UInt16)port error:(NSError **)errPtr;
 
 // Sends a packet.  Use only after calling connect.
 - (void)sendPacket:(OSCPacket *)packet;
