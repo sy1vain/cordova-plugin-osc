@@ -19,7 +19,7 @@ OSCSender.prototype.send = function(address, data, successCallback, errorCallbac
 	cordova.exec(successCallback, errorCallback, "OSC", "sendMessage", data);
 }
 
-OSCListener.prototype.close = function(successCallback){
+OSCSender.prototype.close = function(successCallback){
 	cordova.exec(successCallback, function(err){
 		console.log(err);
 	}, "OSC", "closeSender", [this.host, this.port]);
