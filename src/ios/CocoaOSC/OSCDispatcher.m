@@ -176,7 +176,7 @@ static NSString* globToRegex(NSString *glob);
 
 - (void)dealloc
 {
-    // [self cancelQueuedBundles];
+//    [self cancelQueuedBundles];
 }
 
 

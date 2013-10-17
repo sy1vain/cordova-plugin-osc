@@ -40,7 +40,7 @@
 
 - (void)closeSender:(CDVInvokedUrlCommand*)command
 {
-    NSNumber* port = [command.arguments objectAtIndex:0];
+    NSNumber* port = [command.arguments objectAtIndex:1];
     
     OSCSender *osc = [self getOscOut:port forceCreate:NO];
     if(osc!=nil){
@@ -77,17 +77,14 @@
 
 - (void)stopListening:(CDVInvokedUrlCommand*)command
 {
-    CDVPluginResult* pluginResult = nil;
-    
     NSNumber* port = [command.arguments objectAtIndex:0];
     
     OSCListener *osc = [self getOscIn:port forceCreate:NO];
-    if(osc==nil){
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }else{
+    if(osc!=nil){
         [osc stopListening];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
+
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     
     //send it back
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -242,12 +239,10 @@
 {
     [self stopListening];
     [connection disconnect];
-    connection = nil;
 }
 
 - (void)oscConnection:(OSCConnection *)connection didReceivePacket:(OSCPacket *)packet
 {
-    
     NSString *callbackId = [listeners objectForKey:packet.address];
     if(callbackId==nil) return;
         
