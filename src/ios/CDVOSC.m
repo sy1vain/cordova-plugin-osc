@@ -81,9 +81,9 @@
     
     NSNumber* port = [command.arguments objectAtIndex:0];
     
-    OSCListener *osc = [self getOscIn:port];
+    OSCListener *osc = [self getOscIn:port forceCreate:NO];
     if(osc==nil){
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to create with port"];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }else{
         [osc stopListening];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -242,6 +242,7 @@
 {
     [self stopListening];
     [connection disconnect];
+    connection = nil;
 }
 
 - (void)oscConnection:(OSCConnection *)connection didReceivePacket:(OSCPacket *)packet
