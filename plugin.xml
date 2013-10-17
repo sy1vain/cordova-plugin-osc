@@ -65,6 +65,7 @@
 
         <framework src="libicucore.dylib" />
         <framework src="Security.framework" />
+        <framework src="CFNetwork.framework" />
 
     </platform>
 
