@@ -6,9 +6,12 @@ var OSCSender = function(host, port){
 
 OSCSender.prototype.send = function(address, data, successCallback, errorCallback){
 
-	//this could be more advanced with checking if no data given, just callbacks etc
-
-	if(typeof data == 'undefined' || !data) data = [];
+	if(typeof data == 'function'){
+		errorCallback = successCallback;
+		successCallback = data;
+		data = null;
+	}
+	if(typeof data == 'undefined' || data==null) data = [];
 	if(!(data instanceof Array)) data = [data];
 
 	//we prepend it so reverse order
