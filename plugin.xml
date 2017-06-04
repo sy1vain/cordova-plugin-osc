@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
-           id="nl.sylvain.cordova.osc"
-      version="0.1.0">
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        id="cordova-plugin-osc"
+        version="0.2.0">
     <name>OSC</name>
+    <description>Cordova OSC Plugin</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova, osc</keywords>
+    <repo>https://github.com/sy1vain/cordova-osc-plugin</repo>
+    <issue>https://github.com/sy1vain/cordova-osc-plugin/issues</issue>
 
     <js-module src="www/OSCListener.js" name="OSCListener">
         <clobbers target="window.OSCListener" />
