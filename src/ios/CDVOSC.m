@@ -14,13 +14,13 @@
 - (void)sendMessage:(CDVInvokedUrlCommand*)command
 {
     CDVPluginResult* pluginResult = nil;
-    
+
     NSString *host = [command.arguments objectAtIndex:0];
     NSNumber *port = [command.arguments objectAtIndex:1];
-    
-    
+
+
     OSCSender *osc = [self getOscOut:port];
-    
+
     if(osc==nil){
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to create out port"];
     }else{
@@ -32,16 +32,16 @@
         [osc send:message toHost:host atPort:port];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
-    
+
     //send it back
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    
+
 }
 
 - (void)closeSender:(CDVInvokedUrlCommand*)command
 {
     NSNumber* port = [command.arguments objectAtIndex:1];
-    
+
     OSCSender *osc = [self getOscOut:port forceCreate:NO];
     if(osc!=nil){
         //close the connection
@@ -49,7 +49,7 @@
         //remove it from the list
         [oscOut removeObjectForKey:port];
     }
-    
+
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     //send it back
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -59,9 +59,9 @@
 - (void)startListening:(CDVInvokedUrlCommand*)command
 {
     CDVPluginResult* pluginResult = nil;
-    
+
     NSNumber* port = [command.arguments objectAtIndex:0];
-    
+
     OSCListener *osc = [self getOscIn:port];
     if(osc==nil){
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to create with port"];
@@ -69,23 +69,23 @@
         [osc startListening];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
-    
+
     //send it back
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    
+
 }
 
 - (void)stopListening:(CDVInvokedUrlCommand*)command
 {
     NSNumber* port = [command.arguments objectAtIndex:0];
-    
+
     OSCListener *osc = [self getOscIn:port forceCreate:NO];
     if(osc!=nil){
         [osc stopListening];
     }
 
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    
+
     //send it back
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
@@ -93,9 +93,9 @@
 - (void)addMessageListener:(CDVInvokedUrlCommand*)command
 {
     CDVPluginResult* pluginResult = nil;
-    
+
     NSNumber* port = [command.arguments objectAtIndex:0];
-    
+
     OSCListener *osc = [self getOscIn:port];
     if(osc==nil){
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to create with port"];
@@ -108,7 +108,7 @@
 - (void)closeListener:(CDVInvokedUrlCommand*)command
 {
     NSNumber* port = [command.arguments objectAtIndex:0];
-    
+
     OSCListener *osc = [self getOscIn:port forceCreate:NO];
     if(osc!=nil){
         //close the connection
@@ -116,7 +116,7 @@
         //remove it from the list
         [oscIn removeObjectForKey:port];
     }
-    
+
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     //send it back
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -136,7 +136,7 @@
             [oscIn setObject:osc forKey:port];
         }
     }
-    
+
     return osc;
 }
 
@@ -145,16 +145,16 @@
 }
 
 - (OSCSender*)getOscOut:(NSNumber*)port forceCreate:(bool)create{
-    
+
     OSCSender *osc = [oscOut objectForKey:port];
-    
+
     if(osc==nil && create){
         osc = [[OSCSender alloc] init];
         if(osc!=nil){
             [oscOut setObject:osc forKey:port];
         }
     }
-    
+
     return osc;
 }
 
@@ -216,7 +216,7 @@
 -(void)addListener:(NSString *)address withCallback:(NSString *)callbackId
 {
     [listeners setObject:callbackId forKey:address];
-    
+
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_NO_RESULT];
     [result setKeepCallbackAsBool:YES];
     [commandDelegate sendPluginResult:result callbackId:callbackId];
@@ -245,8 +245,15 @@
 {
     NSString *callbackId = [listeners objectForKey:packet.address];
     if(callbackId==nil) return;
-        
-    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:packet.arguments];
+
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                            messageAsDictionary: [NSDictionary dictionaryWithObjectsAndKeys:
+                                                                  packet.address, @"address",
+                                                                  packet.arguments, @"arguments",
+                                                                  nil
+                                                                  ]
+                               ];
+
     [result setKeepCallbackAsBool:YES];
     [commandDelegate sendPluginResult:result callbackId:callbackId];
 }
