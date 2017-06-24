@@ -216,6 +216,7 @@ static NSString* globToRegex(NSString *glob);
 - (NSArray *)cancelQueuedBundles
 {
     // TODO
+    return nil;
 }
 
 

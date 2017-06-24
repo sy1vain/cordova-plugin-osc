@@ -1,12 +1,13 @@
 {
     "name": "cordova-plugin-osc",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "Cordova OSC Plugin",
     "cordova": {
         "id": "cordova-plugin-osc",
         "platforms": [
             "android",
-            "ios"
+            "ios",
+            "osx"
         ]
     },
     "repository": {
@@ -20,7 +21,8 @@
         "cordova",
         "osc",
         "cordova-android",
-        "cordova-ios"
+        "cordova-ios",
+        "cordova-osx"
     ],
     "author": "sy1vain",
     "license": "Apache-2.0"

@@ -3,7 +3,7 @@
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-osc"
-        version="0.2.0">
+        version="0.2.1">
     <name>OSC</name>
     <description>Cordova OSC Plugin</description>
     <license>Apache 2.0</license>
@@ -44,7 +44,43 @@
         <!-- bind the correct module -->
         <config-file target="config.xml" parent="/*">
             <feature name="OSC">
-                <param name="ios-package" value="CDVOSC" /> 
+                <param name="ios-package" value="CDVOSC" />
+            </feature>
+        </config-file>
+
+        <!-- copy the source files -->
+        <header-file src="src/ios/CDVOSC.h" />
+        <source-file src="src/ios/CDVOSC.m" />
+
+        <header-file src="src/ios/CocoaOSC/GCDAsyncSocket.h" />
+        <source-file src="src/ios/CocoaOSC/GCDAsyncSocket.m" />
+        <header-file src="src/ios/CocoaOSC/GCDAsyncUdpSocket.h" />
+        <source-file src="src/ios/CocoaOSC/GCDAsyncUdpSocket.m" />
+        <header-file src="src/ios/CocoaOSC/CocoaOSC.h" />
+        <header-file src="src/ios/CocoaOSC/NS+OSCAdditions.h" />
+        <source-file src="src/ios/CocoaOSC/NS+OSCAdditions.m" />
+        <header-file src="src/ios/CocoaOSC/OSCConnection.h" />
+        <source-file src="src/ios/CocoaOSC/OSCConnection.m" />
+        <header-file src="src/ios/CocoaOSC/OSCConnectionDelegate.h" />
+        <header-file src="src/ios/CocoaOSC/OSCDispatcher.h" />
+        <source-file src="src/ios/CocoaOSC/OSCDispatcher.m" />
+        <header-file src="src/ios/CocoaOSC/OSCPacket.h" />
+        <source-file src="src/ios/CocoaOSC/OSCPacket.m" />
+        <header-file src="src/ios/CocoaOSC/RegexKitLite.h" />
+        <source-file src="src/ios/CocoaOSC/RegexKitLite.m" compiler-flags="-fno-objc-arc" />
+
+        <framework src="libicucore.dylib" />
+        <framework src="Security.framework" />
+        <framework src="CFNetwork.framework" />
+
+    </platform>
+
+    <!-- osx -->
+    <platform name="osx">
+        <!-- bind the correct module -->
+        <config-file target="config.xml" parent="/*">
+            <feature name="OSC">
+                <param name="osx-package" value="CDVOSC" />
             </feature>
         </config-file>
 
