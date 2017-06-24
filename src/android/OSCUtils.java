@@ -14,6 +14,7 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.illposed.osc.OSCListener;
 import com.illposed.osc.OSCMessage;
@@ -310,22 +311,27 @@ class OSCCallbackListener implements OSCListener {
 	}
 
 	public void acceptMessage(Date date, OSCMessage msg){
+		try {
+			//create a JSON list
+			JSONArray arguments = new JSONArray();
+			Object[] objects = msg.getArguments();
+			for (int i = 0; i < objects.length; i++) {
+				arguments.put(objects[i]);
+			}
 
-		//create a JSON list
-		JSONArray list = new JSONArray();
+			JSONObject json = new JSONObject();
+			json.put("address", msg.getAddress());
+			json.put("arguments", arguments);
 
-		Object[] objects = msg.getArguments();
-		for(int i=0; i<objects.length; i++){
-			list.put(objects[i]);
+			//create the result
+			PluginResult result = new PluginResult(PluginResult.Status.OK, json);
+
+			//we keep the callback in memory so we can call it again
+			result.setKeepCallback(true);
+
+			callbackContext.sendPluginResult(result);
+		}catch(Exception e){
 		}
-
-		//create the result
-		PluginResult result = new PluginResult(PluginResult.Status.OK, list);
-
-		//we keep the callback in memory so we can call it again
-		result.setKeepCallback(true);
-
-		callbackContext.sendPluginResult(result);
 	}
 
 	protected void finalize() throws java.lang.Throwable{
