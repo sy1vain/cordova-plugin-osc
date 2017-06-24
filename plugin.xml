@@ -34,9 +34,21 @@
 
         <!-- copy the source files -->
         <source-file src="src/android/OSCUtils.java" target-dir="src/nl/sylvain/cordova/osc" />
-
-        <!-- copy the osc source files -->
-		<source-file src="libs/JavaOsc.jar" target-dir="libs" />
+        <source-file src="src/android/com/illposed/osc/AbstractOSCPacket.java" target-dir="src/com/illposed/osc" />
+        <source-file src="src/android/com/illposed/osc/AddressSelector.java" target-dir="src/com/illposed/osc" />
+        <source-file src="src/android/com/illposed/osc/OSCBundle.java" target-dir="src/com/illposed/osc" />
+        <source-file src="src/android/com/illposed/osc/OSCImpulse.java" target-dir="src/com/illposed/osc" />
+        <source-file src="src/android/com/illposed/osc/OSCListener.java" target-dir="src/com/illposed/osc" />
+        <source-file src="src/android/com/illposed/osc/OSCMessage.java" target-dir="src/com/illposed/osc" />
+        <source-file src="src/android/com/illposed/osc/OSCPacket.java" target-dir="src/com/illposed/osc" />
+        <source-file src="src/android/com/illposed/osc/OSCPort.java" target-dir="src/com/illposed/osc" />
+        <source-file src="src/android/com/illposed/osc/OSCPortIn.java" target-dir="src/com/illposed/osc" />
+        <source-file src="src/android/com/illposed/osc/OSCPortOut.java" target-dir="src/com/illposed/osc" />
+        <source-file src="src/android/com/illposed/osc/utility/JavaRegexAddressSelector.java" target-dir="src/com/illposed/osc/utility" />
+        <source-file src="src/android/com/illposed/osc/utility/OSCByteArrayToJavaConverter.java" target-dir="src/com/illposed/osc/utility" />
+        <source-file src="src/android/com/illposed/osc/utility/OSCJavaToByteArrayConverter.java" target-dir="src/com/illposed/osc/utility" />
+        <source-file src="src/android/com/illposed/osc/utility/OSCPacketDispatcher.java" target-dir="src/com/illposed/osc/utility" />
+        <source-file src="src/android/com/illposed/osc/utility/OSCPatternAddressSelector.java" target-dir="src/com/illposed/osc/utility" />
     </platform>
 
     <!-- ios -->

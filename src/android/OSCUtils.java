@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -314,9 +315,9 @@ class OSCCallbackListener implements OSCListener {
 		try {
 			//create a JSON list
 			JSONArray arguments = new JSONArray();
-			Object[] objects = msg.getArguments();
-			for (int i = 0; i < objects.length; i++) {
-				arguments.put(objects[i]);
+			List<Object> objects = msg.getArguments();
+			for (Object arg : objects) {
+				arguments.put(arg);
 			}
 
 			JSONObject json = new JSONObject();
