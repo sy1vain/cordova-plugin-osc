@@ -169,7 +169,7 @@
     {
         connection = [[OSCConnection alloc] init];
         NSError *error;
-        if (![connection bindToPort:0 error:&error])
+        if (![connection bindToAddress:@"0.0.0.0" port:0 error:&error])
         {
             NSLog(@"Could not bind UDP connection: %@", error);
             self = nil;
@@ -200,7 +200,7 @@
     {
         connection = [[OSCConnection alloc] init];
         NSError *error;
-        if (![connection bindToPort:[port intValue] error:&error]){
+        if (![connection bindToAddress:@"0.0.0.0" port:[port intValue] error:&error]){
             //throw something
             NSLog(@"Could not bind UDP connection: %@", error);
             self = nil;
@@ -239,6 +239,25 @@
 {
     [self stopListening];
     [connection disconnect];
+}
+
+- (void)oscConnection:(OSCConnection *)connection didReceivePacket:(OSCPacket *)packet fromHost:(NSString *)host port:(UInt16)port
+{
+    NSString *callbackId = [listeners objectForKey:packet.address];
+    if(callbackId==nil) return;
+    
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                            messageAsDictionary: [NSDictionary dictionaryWithObjectsAndKeys:
+                                                                  packet.address, @"address",
+                                                                  packet.arguments, @"arguments",
+                                                                  host, @"remoteAddress",
+                                                                  [NSNumber numberWithUnsignedInt:port], @"remotePort",
+                                                                  nil
+                                                                  ]
+                               ];
+    
+    [result setKeepCallbackAsBool:YES];
+    [commandDelegate sendPluginResult:result callbackId:callbackId];
 }
 
 - (void)oscConnection:(OSCConnection *)connection didReceivePacket:(OSCPacket *)packet

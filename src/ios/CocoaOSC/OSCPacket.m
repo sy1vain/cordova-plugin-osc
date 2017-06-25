@@ -106,25 +106,21 @@ static id parseOSCObject(char typetag, const void *bytes, NSUInteger *ioIndex, N
     {
         if ([data length] == 0)
         {
-
             return nil;
         }
         unsigned char firstByte[1];
         [data getBytes:firstByte length:1];
         if (firstByte[0] == '/')
         {
-
             self = [[OSCMutableMessage alloc] initWithData:data];
         }
         else if (firstByte[0] == '#')
         {
-
             self = [[OSCMutableBundle alloc] initWithData:data];
         }
         else
         {
             NSLog(@"Unrecognized first byte for OSC message: %@", data);
-
             return nil;
         }
     }
@@ -236,7 +232,6 @@ static id parseOSCObject(char typetag, const void *bytes, NSUInteger *ioIndex, N
 
 @synthesize arguments;
 @synthesize address;
-
 
 - (id)init
 {
@@ -428,7 +423,6 @@ static id parseOSCObject(char typetag, const void *bytes, NSUInteger *ioIndex, N
 @synthesize childPackets;
 @synthesize timetag;
 
-
 - (id)init
 {
     return [self initWithData:nil];
@@ -454,7 +448,6 @@ static id parseOSCObject(char typetag, const void *bytes, NSUInteger *ioIndex, N
             if (![bundleMarker isEqualToString:@"#bundle"])
             {
                 NSLog(@"Malformed bundle marker: %@", bundleMarker);
-
                 return nil;
             }
             
@@ -468,7 +461,6 @@ static id parseOSCObject(char typetag, const void *bytes, NSUInteger *ioIndex, N
                 NSData *subData = [data subdataWithRange:NSMakeRange(index, size)];
                 OSCPacket *childPacket = [[OSCPacket alloc] initWithData:subData];
                 [self addChildPacket:childPacket];
-
                 index += size;
             }
         }

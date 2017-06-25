@@ -47,7 +47,6 @@ static NSString* globToRegex(NSString *glob);
 
 @synthesize parent, name, target, action;
 
-
 - (NSString *)description
 {
     NSMutableString *string = [NSMutableString stringWithFormat:@"%@ -> %@ (%@)", self.address, self.target, NSStringFromSelector(self.action)];
@@ -176,7 +175,7 @@ static NSString* globToRegex(NSString *glob);
 
 - (void)dealloc
 {
-//    [self cancelQueuedBundles];
+    [self cancelQueuedBundles];
 }
 
 
@@ -216,7 +215,6 @@ static NSString* globToRegex(NSString *glob);
 - (NSArray *)cancelQueuedBundles
 {
     // TODO
-    return nil;
 }
 
 
