@@ -1,4 +1,4 @@
-cordova-osc-plugin
+cordova-plugin-osc
 ==================
 
 This is a very basic OSC plugin for Cordova, enabling sending and receiving OSC messages over a network.
