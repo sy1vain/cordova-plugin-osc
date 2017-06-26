@@ -10,6 +10,16 @@
     listeners = [NSMutableDictionary dictionary];
 }
 
+- (void)onReset
+{
+    for (NSNumber *key in connections) {
+        OSCConnection* connection = connections[key];
+        connection.continuouslyReceivePackets = NO;
+        [connection disconnect];
+    }
+    [connections removeAllObjects];
+}
+
 - (void)startListening:(CDVInvokedUrlCommand*)command
 {
     CDVPluginResult* pluginResult = nil;
