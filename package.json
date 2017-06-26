@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sy1vain/cordova-osc-plugin.git"
+    "url": "git+https://github.com/sy1vain/cordova-plugin-osc.git"
   },
   "keywords": [
     "cordova",
@@ -25,7 +25,7 @@
   "author": "sy1vain",
   "license": "Apache 2.0",
   "bugs": {
-    "url": "https://github.com/sy1vain/cordova-osc-plugin/issues"
+    "url": "https://github.com/sy1vain/cordova-plugin-osc/issues"
   },
-  "homepage": "https://github.com/sy1vain/cordova-osc-plugin#readme"
+  "homepage": "https://github.com/sy1vain/cordova-plugin-osc#readme"
 }
