@@ -15,18 +15,18 @@ import com.illposed.osc.OSCListener;
 import com.illposed.osc.OSCMessage;
 import com.illposed.osc.OSCPort;
 
+import android.util.SparseArray;
+
 public class OSCUtils extends CordovaPlugin {
 
-	private OSCPort oscPort;
+	final private SparseArray<OSCPort> oscPorts;
 
 
 	/**
      * Constructor.
      */
     public OSCUtils() {
-		try {
-			oscPort = new OSCPort();
-		}catch(Exception e){}
+		oscPorts = new SparseArray<OSCPort>();
     }
 
     /**
@@ -38,21 +38,17 @@ public class OSCUtils extends CordovaPlugin {
      * @return 			True if the action was valid, false otherwise.
      */
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-		if(oscPort==null){
-			callbackContext.error("No OSC Socket available");
-			return false;
-		}
 		try{
 			if(action.equals("startListening")){
-				startListening(args.getInt(0), callbackContext);
+				startListening(args.getInt(0), args.getInt(1), callbackContext);
 			}else if(action.equals("stopListening")){
-				stopListening(callbackContext);
+				stopListening(args.getInt(0), callbackContext);
 			}else if(action.equals("close")){
-				close(callbackContext);
+				close(args.getInt(0), callbackContext);
 			}else if(action.equals("addListener")){
-				addListener(args.getString(0), callbackContext);
+				addListener(args.getInt(0), args.getString(1), callbackContext);
 			}else if(action.equals("send")){
-				send(args.getJSONObject(0), callbackContext);
+				send(args.getInt(0), args.getJSONObject(1), callbackContext);
 			}else{
 				return false;
 			}
@@ -91,13 +87,18 @@ public class OSCUtils extends CordovaPlugin {
      * Does nothing by default.
      */
     public void onReset() {
-		oscPort.close();
+		for(int i=0; i<oscPorts.size(); i++){
+			oscPorts.valueAt(i).close();
+		}
+		oscPorts.clear();
     }
 
     //start listening
-    private void startListening(final int port, final CallbackContext callbackContext){
+    private void startListening(final int instanceID, final int port, final CallbackContext callbackContext){
     	cordova.getThreadPool().execute(new Runnable(){
     		public void run(){
+				OSCPort oscPort = getOSCPort(instanceID);
+				if(oscPort==null){ callbackContext.error("Unable to find/create OSCPort"); return; }
 				synchronized (oscPort){
 					try{
 						if(oscPort.isListening()) oscPort.stopListening();
@@ -112,9 +113,11 @@ public class OSCUtils extends CordovaPlugin {
     }
 
     //stop listening on certain port
-    private void stopListening(final CallbackContext callbackContext){
+    private void stopListening(final int instanceID, final CallbackContext callbackContext){
     	cordova.getThreadPool().execute(new Runnable(){
     		public void run(){
+				OSCPort oscPort = getOSCPort(instanceID);
+				if(oscPort==null){ callbackContext.error("Unable to find/create OSCPort"); return; }
 				synchronized (oscPort) {
 					try {
 						if(oscPort.isListening()) oscPort.stopListening();
@@ -129,21 +132,28 @@ public class OSCUtils extends CordovaPlugin {
     }
 
     //close all
-	private void close(final CallbackContext callbackContext){
+	private void close(final int instanceID, final CallbackContext callbackContext){
 		cordova.getThreadPool().execute(new Runnable(){
 			public void run(){
+				OSCPort oscPort = getOSCPort(instanceID);
+				if(oscPort==null){ callbackContext.error("Unable to find/create OSCPort"); return; }
 				synchronized (oscPort) {
 					oscPort.close();
+				}
+				synchronized (oscPorts){
+					oscPorts.delete(instanceID);
 				}
 			}
 		});
 	}
 
     //adds a message listener
-    private void addListener(final String address, final CallbackContext callbackContext) throws SocketException {
+    private void addListener(final int instanceID, final String address, final CallbackContext callbackContext) throws SocketException {
     	cordova.getThreadPool().execute(new Runnable(){
     		public void run(){
 				try {
+					OSCPort oscPort = getOSCPort(instanceID);
+					if(oscPort==null){ callbackContext.error("Unable to find/create OSCPort"); return; }
 					synchronized (oscPort) {
 						oscPort.addListener(address, new OSCCallbackListener(callbackContext));
 					}
@@ -157,10 +167,12 @@ public class OSCUtils extends CordovaPlugin {
     	});
     }
 
-    private void send(final JSONObject json, final CallbackContext callbackContext){
+    private void send(final int instanceID, final JSONObject json, final CallbackContext callbackContext){
 		cordova.getThreadPool().execute(new Runnable(){
 			public void run(){
 				try {
+					OSCPort oscPort = getOSCPort(instanceID);
+					if(oscPort==null){ callbackContext.error("Unable to find/create OSCPort"); return; }
 					if(!json.has("remoteAddress")){
 						callbackContext.error("No remoteAddress");
 						return;
@@ -200,6 +212,24 @@ public class OSCUtils extends CordovaPlugin {
 
 			}
 		});
+	}
+
+
+
+	private OSCPort getOSCPort(final int instanceID){
+		OSCPort oscPort;
+		synchronized (oscPorts) {
+			oscPort = oscPorts.get(instanceID);
+			if (oscPort == null) {
+				try {
+					oscPort = new OSCPort();
+					oscPorts.put(instanceID, oscPort);
+				} catch (Exception e) {
+				}
+			}
+		}
+
+		return oscPort;
 	}
 
 }

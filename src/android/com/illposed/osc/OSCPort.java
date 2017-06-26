@@ -41,7 +41,10 @@ public class OSCPort implements Runnable {
 
 	public OSCPort(final DatagramSocket socket) {
 		this.socket = socket;
-		try{ socket.setBroadcast(true); }catch(Exception e){}
+		try{
+			socket.setBroadcast(true);
+			socket.setReuseAddress(true);
+		}catch(Exception e){}
 
 		this.converter = new OSCByteArrayToJavaConverter();
 		this.dispatcher = new OSCPacketDispatcher();
@@ -49,7 +52,7 @@ public class OSCPort implements Runnable {
 	}
 
 	public OSCPort()  throws SocketException {
-		this(new DatagramSocket());
+		this(new DatagramSocket(null));
 	}
 
 	/**
@@ -112,8 +115,7 @@ public class OSCPort implements Runnable {
 	 * Start listening for incoming OSCPackets
 	 */
 	public void startListening(int port) throws SocketException {
-
-		getSocket().bind(new InetSocketAddress("0.0.0.0", port));
+		getSocket().bind(new InetSocketAddress(port));
 
 		if (!isListening()) { // NOTE This is not thread-save
 			listening = true;
