@@ -39,8 +39,6 @@
         <source-file src="src/android/com/illposed/osc/OSCMessage.java" target-dir="src/com/illposed/osc" />
         <source-file src="src/android/com/illposed/osc/OSCPacket.java" target-dir="src/com/illposed/osc" />
         <source-file src="src/android/com/illposed/osc/OSCPort.java" target-dir="src/com/illposed/osc" />
-        <source-file src="src/android/com/illposed/osc/OSCPortIn.java" target-dir="src/com/illposed/osc" />
-        <source-file src="src/android/com/illposed/osc/OSCPortOut.java" target-dir="src/com/illposed/osc" />
         <source-file src="src/android/com/illposed/osc/utility/JavaRegexAddressSelector.java" target-dir="src/com/illposed/osc/utility" />
         <source-file src="src/android/com/illposed/osc/utility/OSCByteArrayToJavaConverter.java" target-dir="src/com/illposed/osc/utility" />
         <source-file src="src/android/com/illposed/osc/utility/OSCJavaToByteArrayConverter.java" target-dir="src/com/illposed/osc/utility" />
