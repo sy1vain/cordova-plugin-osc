@@ -115,7 +115,9 @@ public class OSCPort implements Runnable {
 	 * Start listening for incoming OSCPackets
 	 */
 	public void startListening(int port) throws SocketException {
-		getSocket().bind(new InetSocketAddress(port));
+		if(getSocket().getLocalPort()!=port) {
+			getSocket().bind(new InetSocketAddress(port));
+		}
 
 		if (!isListening()) { // NOTE This is not thread-save
 			listening = true;
