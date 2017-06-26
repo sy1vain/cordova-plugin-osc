@@ -1,29 +1,35 @@
-module.exports = {
-  startListening: function(port, successCallback, errorCallback){
-    cordova.exec(successCallback, errorCallback, "OSC", "startListening", [port]);
-  },
+var OSC_ID= 0;
 
-  stopListening: function(successCallback){
-    cordova.exec(successCallback, function(err){
-  		console.log(err);
-  	}, "OSC", "stopListening");
-  },
+var OSC = function(){
+  this.instanceID = OSC_ID++;
+}
 
-  close: function(successCallback){
-    cordova.exec(successCallback, function(err){
-  		console.log(err);
-  	}, "OSC", "close");
-  },
+OSC.prototype.startListening = function(port, successCallback, errorCallback){
+  cordova.exec(successCallback, errorCallback, "OSC", "startListening", [this.instanceID, port]);
+},
 
-  on: function(message, successCallback){
-    cordova.exec(successCallback, function(err){
-  		console.log(err);
-  	}, "OSC", "addListener", [message]);
-  },
+OSC.prototype.stopListening = function(successCallback){
+  cordova.exec(successCallback, function(err){
+    console.log(err);
+  }, "OSC", "stopListening", [this.instanceID]);
+},
 
-  send: function(data, successCallback){
-    cordova.exec(successCallback, function(err){
-  		console.log(err);
-  	}, "OSC", "send", [data]);
-  }
-};
+OSC.prototype.close = function(successCallback){
+  cordova.exec(successCallback, function(err){
+    console.log(err);
+  }, "OSC", "close", [this.instanceID]);
+},
+
+OSC.prototype.on = function(message, successCallback){
+  cordova.exec(successCallback, function(err){
+    console.log(err);
+  }, "OSC", "addListener", [this.instanceID, message]);
+},
+
+OSC.prototype.send = function(data, successCallback){
+  cordova.exec(successCallback, function(err){
+    console.log(err);
+  }, "OSC", "send", [this.instanceID, data]);
+}
+
+module.exports = OSC;

@@ -3,7 +3,7 @@
 
 @interface CDVOSC : CDVPlugin <OSCConnectionDelegate>
 {
-    OSCConnection *connection;
+    NSMutableDictionary *connections;
     NSMutableDictionary *listeners;
     id <CDVCommandDelegate> commandDelegate;
 }
@@ -15,5 +15,7 @@
 - (void)addListener:(CDVInvokedUrlCommand*)command;
 - (void)close:(CDVInvokedUrlCommand*)command;
 - (void)send:(CDVInvokedUrlCommand*)command;
+
+- (OSCConnection*)getConnection:(NSNumber*)instanceID;
 
 @end
