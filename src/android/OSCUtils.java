@@ -143,6 +143,7 @@ public class OSCUtils extends CordovaPlugin {
 				synchronized (oscPorts){
 					oscPorts.delete(instanceID);
 				}
+				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
 			}
 		});
 	}

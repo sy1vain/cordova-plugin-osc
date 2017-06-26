@@ -16,6 +16,7 @@
     NSError *error;
     
     OSCConnection* connection = [self getConnection:[command.arguments objectAtIndex:0]];
+    if(connection==nil) return [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to find/create OSCConnection"] callbackId:command.callbackId];
     NSNumber* port = [command.arguments objectAtIndex:1];
     
     if ([connection bindToAddress:@"0.0.0.0" port:[port intValue] error:&error]){
@@ -35,11 +36,17 @@
 - (void)stopListening:(CDVInvokedUrlCommand*)command
 {
     OSCConnection* connection = [self getConnection:[command.arguments objectAtIndex:0]];
+    if(connection==nil) return [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to find/create OSCConnection"] callbackId:command.callbackId];
     connection.continuouslyReceivePackets = NO;
+    
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
 }
 
 - (void)addListener:(CDVInvokedUrlCommand*)command
 {
+    OSCConnection* connection = [self getConnection:[command.arguments objectAtIndex:0]];
+    if(connection==nil) return [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to find/create OSCConnection"] callbackId:command.callbackId];
+    
     NSNumber* key = [command.arguments objectAtIndex:0];
     NSString* callbackId = command.callbackId;
     NSString* address = [command.arguments objectAtIndex:1];
@@ -59,17 +66,21 @@
 
 - (void)close:(CDVInvokedUrlCommand*)command
 {
-    [self stopListening:command];
     NSNumber* key = [command.arguments objectAtIndex:0];
     OSCConnection* connection = [self getConnection:key];
+    if(connection==nil) return [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to find/create OSCConnection"] callbackId:command.callbackId];
+    
+    connection.continuouslyReceivePackets = NO;
     [connection disconnect];
     [connections removeObjectForKey:key];
     [listeners removeObjectForKey:key];
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
 }
 
 - (void)send:(CDVInvokedUrlCommand*)command
 {
     OSCConnection* connection = [self getConnection:[command.arguments objectAtIndex:0]];
+    if(connection==nil) return [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Unable to find/create OSCConnection"] callbackId:command.callbackId];
     
     NSDictionary* data = [command.arguments objectAtIndex:1];
     NSString* host = [data objectForKey:@"remoteAddress"];
