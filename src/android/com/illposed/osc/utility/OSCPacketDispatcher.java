@@ -43,30 +43,30 @@ public class OSCPacketDispatcher {
 		selectorToListener.put(addressSelector, listener);
 	}
 
-	public void dispatchPacket(final OSCPacket packet) {
-		dispatchPacket(packet, null);
+	public void dispatchPacket(final OSCPacket packet, String host, int port) {
+		dispatchPacket(packet, null, host, port);
 	}
 
-	public void dispatchPacket(final OSCPacket packet, final Date timestamp) {
+	public void dispatchPacket(final OSCPacket packet, final Date timestamp, String host, int port) {
 		if (packet instanceof OSCBundle) {
-			dispatchBundle((OSCBundle) packet);
+			dispatchBundle((OSCBundle) packet, host, port);
 		} else {
-			dispatchMessage((OSCMessage) packet, timestamp);
+			dispatchMessage((OSCMessage) packet, timestamp, host, port);
 		}
 	}
 
-	private void dispatchBundle(final OSCBundle bundle) {
+	private void dispatchBundle(final OSCBundle bundle, String host, int port) {
 		final Date timestamp = bundle.getTimestamp();
 		final List<OSCPacket> packets = bundle.getPackets();
 		for (final OSCPacket packet : packets) {
-			dispatchPacket(packet, timestamp);
+			dispatchPacket(packet, timestamp, host, port);
 		}
 	}
 
-	private void dispatchMessage(final OSCMessage message, final Date time) {
+	private void dispatchMessage(final OSCMessage message, final Date time, String host, int port) {
 		for (final Entry<AddressSelector, OSCListener> addrList : selectorToListener.entrySet()) {
 			if (addrList.getKey().matches(message.getAddress())) {
-				addrList.getValue().acceptMessage(time, message);
+				addrList.getValue().acceptMessage(time, message, host, port);
 			}
 		}
 	}

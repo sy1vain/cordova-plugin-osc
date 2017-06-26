@@ -1,14 +1,8 @@
 package nl.sylvain.cordova.osc;
 
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -19,22 +13,20 @@ import org.json.JSONObject;
 
 import com.illposed.osc.OSCListener;
 import com.illposed.osc.OSCMessage;
-import com.illposed.osc.OSCPortIn;
-import com.illposed.osc.OSCPortOut;
-
-import android.util.SparseArray;
+import com.illposed.osc.OSCPort;
 
 public class OSCUtils extends CordovaPlugin {
 
-	private SparseArray<OSCPortIn> oscIn = new SparseArray<OSCPortIn>();
-	//osc out uses a hashmap since the keys are strings
-	private HashMap<String, OSCPortOut> oscOut = new HashMap<String, OSCPortOut>();
+	private OSCPort oscPort;
 
 
 	/**
      * Constructor.
      */
     public OSCUtils() {
+		try {
+			oscPort = new OSCPort();
+		}catch(Exception e){}
     }
 
     /**
@@ -46,31 +38,30 @@ public class OSCUtils extends CordovaPlugin {
      * @return 			True if the action was valid, false otherwise.
      */
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-    	try{
-    		if(action.equals("startListening")){
-    			startListening(args.getInt(0), callbackContext);
-            }else if(action.equals("stopListening")){
-            	stopListening(args.getInt(0), callbackContext);
-            }else if(action.equals("closeListener")){
-                closeListener(args.getInt(0), callbackContext);
-            }else if(action.equals("closeSender")){
-                closeSender(args.getString(0), args.getInt(1), callbackContext);
-    		}else if(action.equals("addMessageListener")){
-    			addMessageListener(args.getInt(0), args.getString(1), callbackContext);
-    			PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
-                pluginResult.setKeepCallback(true);
-                callbackContext.sendPluginResult(pluginResult);
-    		}else if(action.equals("sendMessage")){
-    			sendMessage(args, callbackContext);
-    		}else{
-    			return false;
-    		}
-    	}catch(SocketException e){
-    		callbackContext.error(e.getMessage());
-    	}catch(Exception e){
-    		callbackContext.error(e.getMessage());
-    	}
-    	//always return true, we only get here through an exception
+		if(oscPort==null){
+			callbackContext.error("No OSC Socket available");
+			return false;
+		}
+		try{
+			if(action.equals("startListening")){
+				startListening(args.getInt(0), callbackContext);
+			}else if(action.equals("stopListening")){
+				stopListening(callbackContext);
+			}else if(action.equals("close")){
+				close(callbackContext);
+			}else if(action.equals("addListener")){
+				addListener(args.getString(0), callbackContext);
+			}else if(action.equals("send")){
+				send(args.getJSONObject(0), callbackContext);
+			}else{
+				return false;
+			}
+		}catch(SocketException e){
+			callbackContext.error(e.getMessage());
+		}catch(Exception e){
+			callbackContext.error(e.getMessage());
+		}
+		//always return true, we only get here through an exception
     	return true;
     }
 
@@ -100,206 +91,116 @@ public class OSCUtils extends CordovaPlugin {
      * Does nothing by default.
      */
     public void onReset() {
-    	cordova.getThreadPool().execute(new Runnable(){
-    		public void run(){
-    			synchronized(oscIn){
-    				for(int i=0; i<oscIn.size(); i++){
-    					OSCPortIn oscport = oscIn.valueAt(i);
-    					if(oscport.isListening()){
-    						oscport.stopListening();
-    					}
-    					oscport.close();
-    				}
-    				oscIn.clear();
-    			}
-    			synchronized(oscOut){
-    				Iterator<Entry<String, OSCPortOut>> it = oscOut.entrySet().iterator();
-    				while (it.hasNext()) {
-    			        Map.Entry<String, OSCPortOut> pair = (Map.Entry<String, OSCPortOut>)it.next();
-    			        pair.getValue().close();
-    			    }
-    				oscOut.clear();
-    			}
-    		}
-    	});
+		oscPort.close();
     }
 
     //start listening
     private void startListening(final int port, final CallbackContext callbackContext){
     	cordova.getThreadPool().execute(new Runnable(){
     		public void run(){
-    			try{
-    				OSCPortIn oscport = getPortIn(port);
-    				if(!oscport.isListening()){
-    					oscport.startListening();
-    				}
-    				//callback to OK
-    				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
-    			}catch(Exception e){
-    				callbackContext.error(e.getMessage());
-    			}
+				synchronized (oscPort){
+					try{
+						if(oscPort.isListening()) oscPort.stopListening();
+						oscPort.startListening(port);
+						callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+					}catch(Exception e){
+						callbackContext.error(e.getMessage());
+					}
+				}
     		}
     	});
     }
 
     //stop listening on certain port
-    private void stopListening(final int port, final CallbackContext callbackContext){
+    private void stopListening(final CallbackContext callbackContext){
     	cordova.getThreadPool().execute(new Runnable(){
     		public void run(){
-    			try{
-    				//get the port without creating
-    				OSCPortIn oscport = getPortIn(port, false);
-    				if(oscport!=null && oscport.isListening()){
-    					oscport.stopListening();
-    				}
-    				//callback to OK
-    				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
-    			}catch(Exception e){
-    				callbackContext.error(e.getMessage());
-    			}
+				synchronized (oscPort) {
+					try {
+						if(oscPort.isListening()) oscPort.stopListening();
+						//callback to OK
+						callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+					} catch (Exception e) {
+						callbackContext.error(e.getMessage());
+					}
+				}
     		}
     	});
     }
+
+    //close all
+	private void close(final CallbackContext callbackContext){
+		cordova.getThreadPool().execute(new Runnable(){
+			public void run(){
+				synchronized (oscPort) {
+					oscPort.close();
+				}
+			}
+		});
+	}
 
     //adds a message listener
-    private void addMessageListener(final int port, final String address, final CallbackContext callbackContext) throws SocketException {
+    private void addListener(final String address, final CallbackContext callbackContext) throws SocketException {
     	cordova.getThreadPool().execute(new Runnable(){
     		public void run(){
-    			try{
-    				//get the port
-    				OSCPortIn oscport = getPortIn(port);
-    				oscport.addListener(address, new OSCCallbackListener(callbackContext));
-    			}catch(Exception e){
-    				callbackContext.error(e.getMessage());
-    			}
+				try {
+					synchronized (oscPort) {
+						oscPort.addListener(address, new OSCCallbackListener(callbackContext));
+					}
+					PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
+					pluginResult.setKeepCallback(true);
+					callbackContext.sendPluginResult(pluginResult);
+				} catch (Exception e) {
+					callbackContext.error(e.getMessage());
+				}
     		}
     	});
     }
 
-    //close the listener port
-    private void closeListener(final int port, final CallbackContext callbackContext) {
-    	cordova.getThreadPool().execute(new Runnable(){
-    		public void run(){
-    			try{
-    				OSCPortIn oscport = getPortIn(port, false);
-    				if(oscport!=null){
-    					if(oscport.isListening()){
-    						oscport.stopListening();
-    					}
-    					oscport.close();
-    					synchronized (oscIn) {
-    						oscIn.delete(port);
-    					}
-    				}
-    				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
-    			}catch(Exception e){
-    				callbackContext.error(e.getMessage());
-    			}
-    		}
-    	});
-    }
+    private void send(final JSONObject json, final CallbackContext callbackContext){
+		cordova.getThreadPool().execute(new Runnable(){
+			public void run(){
+				try {
+					if(!json.has("remoteAddress")){
+						callbackContext.error("No remoteAddress");
+						return;
+					}
+					if(!json.has("remotePort")){
+						callbackContext.error("No remotePort");
+						return;
+					}
+					if(!json.has("address")){
+						callbackContext.error("No address");
+						return;
+					}
 
-    private void closeSender(final String host, final int port, final CallbackContext callbackContext) {
-    	cordova.getThreadPool().execute(new Runnable(){
-    		public void run(){
-    			try{
-    				OSCPortOut oscport = getPortOut(host, port, false);
-    				if(oscport!=null){
-    					oscport.close();
-    					synchronized (oscOut) {
-    						oscOut.remove(createOutKey(host, port));
-    					}
-    				}
-    				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
-    			}catch(Exception e){
-    				callbackContext.error(e.getMessage());
-    			}
-    		}
-    	});
-    }
+					String host = json.getString("remoteAddress");
+					int port = json.getInt("remotePort");
+					String address = json.getString("address");
 
-
-    //sending of messages
-    private void sendMessage(final JSONArray args, final CallbackContext callbackContext){
-
-    	if(args.length()<3){
-    		callbackContext.error("Too little arguments");
-    		return;
-    	}
-    	cordova.getThreadPool().execute(new Runnable(){
-    		public void run(){
-    			try{
-    				String host = args.getString(0);
-    				int port = args.getInt(1);
-    				String address = args.getString(2);
-
-    				OSCPortOut oscport = getPortOut(host, port);
-    				OSCMessage packet = new OSCMessage(address);
-
-    				for(int i=3; i<args.length(); i++){
-						Object arg = args.get(i);
-						if(arg instanceof Double){
-							arg = new Float(args.getDouble(i));
+					OSCMessage packet = new OSCMessage(address);
+					if(json.has("arguments")){
+						JSONArray arguments = json.getJSONArray("arguments");
+						for(int i=0; i<arguments.length(); i++){
+							Object argument = arguments.get(i);
+							if(argument instanceof Double){
+								argument = new Float(arguments.getDouble(i));
+							}
+							packet.addArgument(argument);
 						}
-						packet.addArgument(arg);
-    				}
+					}
 
-    				oscport.send(packet);
-    				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+					synchronized (oscPort) {
+						oscPort.send(packet, host, port);
+					}
+					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+				} catch (Exception e) {
+					callbackContext.error(e.getMessage());
+				}
 
-    			}catch(Exception e){
-    				callbackContext.error(e.getMessage());
-    			}
-
-    		}
-    	});
-    }
-
-
-    //get a port (always create)
-    private OSCPortIn getPortIn(int port) throws SocketException {
-    	return getPortIn(port, true);
-    }
-
-    //get a port and create if needed
-    private OSCPortIn getPortIn(int port, boolean create) throws SocketException {
-    	OSCPortIn oscport = null;
-    	synchronized (oscIn) {
-    		oscport = oscIn.get(port);
-    	}
-        if(oscport==null && create){
-        	oscport = new OSCPortIn(port);
-        	synchronized (oscIn) {
-        		oscIn.put(port, oscport);
-        	}
-        }
-       	return oscport;
-    }
-
-    //get a port (always create)
-    private OSCPortOut getPortOut(String host, int port) throws SocketException, UnknownHostException {
-    	return getPortOut(host, port, true);
-    }
-
-    //get a port and create if needed
-    private OSCPortOut getPortOut(String host, int port, boolean create) throws SocketException, UnknownHostException {
-    	String hashkey = createOutKey(host, port);
-    	OSCPortOut oscport = null;
-    	synchronized (oscOut) {
-    		oscport = oscOut.get(hashkey);
-    	}
-        if(oscport==null && create){
-        	oscport = new OSCPortOut(InetAddress.getByName(host), port);
-        	synchronized (oscOut) {
-        		oscOut.put(hashkey, oscport);
-        	}
-        }
-       	return oscport;
-    }
-
-    private String createOutKey(String host, int port){
-    	return host + ":" + port;
-    }
+			}
+		});
+	}
 
 }
 
@@ -311,7 +212,7 @@ class OSCCallbackListener implements OSCListener {
 		this.callbackContext = callbackContext;
 	}
 
-	public void acceptMessage(Date date, OSCMessage msg){
+	public void acceptMessage(Date date, OSCMessage msg, String host, int port){
 		try {
 			//create a JSON list
 			JSONArray arguments = new JSONArray();
@@ -323,6 +224,8 @@ class OSCCallbackListener implements OSCListener {
 			JSONObject json = new JSONObject();
 			json.put("address", msg.getAddress());
 			json.put("arguments", arguments);
+			json.put("remoteAddress", host);
+			json.put("remotePort", port);
 
 			//create the result
 			PluginResult result = new PluginResult(PluginResult.Status.OK, json);
@@ -332,6 +235,7 @@ class OSCCallbackListener implements OSCListener {
 
 			callbackContext.sendPluginResult(result);
 		}catch(Exception e){
+			System.out.println("Error...");
 		}
 	}
 
