@@ -89,6 +89,7 @@ public class OSCUtils extends CordovaPlugin {
     public void onReset() {
 		for(int i=0; i<oscPorts.size(); i++){
 			oscPorts.valueAt(i).close();
+			oscPorts.valueAt(i).stopListening();
 		}
 		oscPorts.clear();
     }

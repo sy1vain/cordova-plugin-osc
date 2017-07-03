@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-osc",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Cordova OSC Plugin",
   "cordova": {
     "id": "cordova-plugin-osc",
