@@ -108,7 +108,7 @@ enum {
 
 - (UInt16)localPort
 {
-    return [self.socket localPort];
+    return (tcpSocket ? [tcpSocket localPort] : [udpSocket localPort]);
 }
 
 
